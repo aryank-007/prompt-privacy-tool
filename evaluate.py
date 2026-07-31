@@ -1,6 +1,6 @@
 """
-Evaluates the pattern detector against 20 hand-labeled test cases.
-Prints a precision/recall table and confusion matrix.
+Evaluates the full pipeline against 50 hand-labeled test cases.
+Prints a results table, confusion matrix, and final scores.
 """
 
 import os
@@ -9,21 +9,20 @@ from labels import LABELS
 
 TEST_FOLDER = "test_cases"
 
-tp = 0  # predicted positive, actually positive
-fp = 0  # predicted positive, actually negative
-tn = 0  # predicted negative, actually negative
-fn = 0  # predicted negative, actually positive
+tp = 0
+fp = 0
+tn = 0
+fn = 0
 
-print("Evaluation Results — 20 Hand-Labeled Test Cases")
+print("Evaluation Results - 50 Hand-Labeled Test Cases")
 print("=" * 65)
-print(f"{'File':<12} {'Predicted':>10} {'Actual':>8} {'Result':>10}")
+print(f"{'File':<12} {'Predicted':>10} {'Actual':>10} {'Result':>15}")
 print("-" * 65)
 
 for filename, true_label in LABELS.items():
     filepath = os.path.join(TEST_FOLDER, filename)
     results = scan_file(filepath)
 
-    # File is flagged if ANY result has a pattern match
     predicted = 1 if any(r["flagged"] for r in results) else 0
 
     if predicted == 1 and true_label == 1:
@@ -40,8 +39,8 @@ for filename, true_label in LABELS.items():
         fn += 1
 
     predicted_str = "Sensitive" if predicted == 1 else "Clean"
-    actual_str = "Sensitive" if true_label == 1 else "Clean"
-    print(f"{filename:<12} {predicted_str:>10} {actual_str:>8} {outcome:>15}")
+    actual_str    = "Sensitive" if true_label == 1 else "Clean"
+    print(f"{filename:<12} {predicted_str:>10} {actual_str:>10} {outcome:>15}")
 
 print("=" * 65)
 

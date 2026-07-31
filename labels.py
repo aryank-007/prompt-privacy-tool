@@ -1,8 +1,9 @@
-# Ground truth labels for the 20 test cases.
+# Ground truth labels for all 50 test cases.
 # 1 = file contains a real secret that should be flagged
 # 0 = file is clean or only contains placeholders
 
 LABELS = {
+    # Week 4 original 20
     "tc_01.py": 1,
     "tc_02.py": 1,
     "tc_03.py": 1,
@@ -23,4 +24,35 @@ LABELS = {
     "tc_18.py": 0,
     "tc_19.py": 0,
     "tc_20.py": 0,
+    # Week 7 additional 30
+    "tc_21.py": 1,
+    "tc_22.py": 1,
+    "tc_23.py": 1,
+    "tc_24.py": 1,
+    "tc_25.py": 1,
+    "tc_26.py": 1,
+    "tc_27.py": 1,
+    "tc_28.py": 1,
+    "tc_29.py": 1,
+    "tc_30.py": 1,
+    "tc_31.py": 1,
+    "tc_32.py": 1,
+    "tc_33.py": 1,
+    "tc_34.py": 0,
+    "tc_35.py": 0,
+    "tc_36.py": 0,
+    "tc_37.py": 0,
+    "tc_38.py": 0,
+    "tc_39.py": 0,
+    "tc_40.py": 0,
+    "tc_41.py": 0,
+    "tc_42.py": 0,
+    "tc_43.py": 0,
+    "tc_44.py": 0,
+    "tc_45.py": 0,
+    "tc_46.py": 0,
+    "tc_47.py": 0,
+    "tc_48.py": 0,
+    "tc_49.py": 0,
+    "tc_50.py": 0,
 }
