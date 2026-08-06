@@ -1,26 +1,32 @@
 """
-Pattern detection engine for Week 4.
+Pattern detection engine for Week 4, updated in Week 8.
 Takes findings from the AST parser and checks whether the actual values
 look like real secrets or just placeholders.
 """
 
 import re
 
-# Regex patterns that match known real secret formats
-REAL_SECRET_PATTERNS = [
-    ("AWS Access Key",    r"AKIA[0-9A-Z]{16}"),
-    ("AWS Secret Key",    r"[A-Za-z0-9/+=]{40}"),
-    ("GitHub Token",      r"gh[pso]_[A-Za-z0-9]{36}"),
-    ("Stripe Key",        r"(sk|pk)_(test|live)_[A-Za-z0-9]{24,}"),
-    ("JWT",               r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
-    ("Generic Long Key",  r"[A-Za-z0-9+/!@#$%^&*\-_]{20,}"),
+# Strong format-specific patterns — checked BEFORE the placeholder filter.
+# These formats are precise enough that even a value containing "example"
+# should still be flagged (e.g. a real AWS key that happens to end in EXAMPLE).
+STRONG_PATTERNS = [
+    ("AWS Access Key", r"AKIA[0-9A-Z]{16}"),
+    ("AWS Secret Key", r"[A-Za-z0-9/+=]{40}"),
+    ("GitHub Token",   r"gh[pso]_[A-Za-z0-9]{36}"),
+    ("Stripe Key",     r"(sk|pk)_(test|live)_[A-Za-z0-9]{24,}"),
+    ("JWT",            r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
 ]
 
-# Words that suggest a value is just a placeholder, not a real secret
+# Generic patterns — only checked after the placeholder filter passes.
+GENERIC_PATTERNS = [
+    ("Generic Long Key", r"[A-Za-z0-9+/!@#$%^&*\-_]{20,}"),
+]
+
+# Words that suggest a value is just a placeholder, not a real secret.
 PLACEHOLDER_WORDS = [
-    "your", "here", "example", "todo", "change", "replace",
+    "your", "here", "todo", "change", "replace",
     "placeholder", "insert", "enter", "put", "add", "xxx",
-    "test", "fake", "dummy", "sample", "demo"
+    "test", "fake", "dummy", "sample", "demo", "example"
 ]
 
 
@@ -34,14 +40,31 @@ def looks_like_placeholder(value):
     return False
 
 
-def check_value(value):
-    if not value or len(value) < 6:
+def check_value(value, name=""):
+    if not value:
         return None
+
+    # Fix 1: Strong patterns bypass the placeholder filter entirely.
+    for pattern_name, pattern in STRONG_PATTERNS:
+        if re.search(pattern, value):
+            return pattern_name
+
+    # Placeholder filter applies to everything else.
     if looks_like_placeholder(value):
         return None
-    for name, pattern in REAL_SECRET_PATTERNS:
+
+    # Fix 2: Password-named variables only need 8+ chars, not 20+.
+    is_password = any(w in name.lower() for w in ["password", "passwd", "pwd"])
+    if is_password and len(value) >= 8:
+        return "Password"
+
+    if len(value) < 20:
+        return None
+
+    for pattern_name, pattern in GENERIC_PATTERNS:
         if re.search(pattern, value):
-            return name
+            return pattern_name
+
     return None
 
 
@@ -53,7 +76,7 @@ def scan_file(filepath):
 
     for f in findings:
         value = f.get("value", "")
-        match = check_value(value)
+        match = check_value(value, f.get("name", ""))
         results.append({
             "line": f["line"],
             "type": f["type"],

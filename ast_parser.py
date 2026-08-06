@@ -47,14 +47,22 @@ def find_sensitive_nodes(filepath):
         # Variable assignments: api_key = "abc123"
         if isinstance(node, ast.Assign):
             for target in node.targets:
+                name = None
+                node_type = None
                 if isinstance(target, ast.Name) and is_sensitive(target.id):
+                    name = target.id
+                    node_type = "Assignment"
+                elif isinstance(target, ast.Attribute) and is_sensitive(target.attr):
+                    name = target.attr
+                    node_type = "Class Attribute"
+                if name:
                     value = ""
                     if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
                         value = node.value.value
                     findings.append({
                         "line": node.lineno,
-                        "type": "Assignment",
-                        "name": target.id,
+                        "type": node_type,
+                        "name": name,
                         "value": value,
                         "snippet": lines[node.lineno - 1].strip()
                     })
